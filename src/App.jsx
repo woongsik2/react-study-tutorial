@@ -1,122 +1,83 @@
-import './App.css';
-import Header from './components/Header.jsx';
-import Editor from './components/Editor.jsx';
-import List from './components/List.jsx';
-import Exam from './components/Exam.jsx';
+import Header from "./components/Header.jsx";
+import Editor from "./components/Editor.jsx";
+import List from "./components/List.jsx";
 
-import { useState, useRef, useReducer, useCallback, useEffect, createContext, useMemo } from 'react';
+import './App.css'
+import { useReducer, useState, useCallback, createContext, useMemo } from "react";
 
 const mockData = [
-  {
-    id: 0,
-    isDone: false,
-    content: '테스트1',
-    date: new Date().getTime(),
-  },
+    {
+        id: 1,
+        content: '할 일 1',
+        date: new Date().getTime(),
+        isDone: false
+    },
+    {
+        id: 2,
+        content: '할 일 2',
+        date: new Date().getTime(),
+        isDone: false
+    },
+    {
+        id: 3,
+        content: '할 일 3',
+        date: new Date().getTime(),
+        isDone: false
+    }]
 
-  {
-    id: 1,
-    isDone: false,
-    content: '테스트2',
-    date: new Date().getTime(),
-  },
-  {
-    id: 2,
-    isDone: false,
-    content: '테스트3',
-    date: new Date().getTime(),
-  },
-];
+function reducer(state, action) {
+    switch (action.type) {
+        case 'CREATE':
+            return [...state, action.todo];
+        case 'UPDATE':
+            return state.map((todo) => {
+                if (todo.id === action.id) {
+                    return { ...todo, isDone: !todo.isDone }
+                }
+                return todo;
+            });
+        case 'DELETE':
+            return state.filter((todo) => {
+                return todo.id !== action.id;
+            });
+        default:
+            return state;
+    }
+}
 
-const reducer = (state, action) => {
-  switch (action.type) {
-    case 'TODO_INSERT':
-      return [action.data, ...state];
-    case 'TODO_UPDATE':
-      return state.map(item => (item.id === action.targetId ? { ...item, isDone: !item.isDone } : item));
-    case 'TODO_DELETE':
-      return state.filter(item => item.id !== action.targetId);
-    default:
-      return state;
-  }
-};
-
-// 컴포넌트 외부에 생성.
 export const TodoStateContext = createContext();
 export const TodoDispatchContext = createContext();
 
 function App() {
-  // const [todos, setTodos] = useState(mockData);
-  const [todos, dispatch] = useReducer(reducer, mockData);
-  const idRef = useRef(3);
+    const [todos, dispatch] = useReducer(reducer, mockData);
 
-  const onInsert = useCallback(content => {
-    dispatch({
-      type: 'TODO_INSERT',
-      data: {
-        id: idRef.current++,
-        isDone: false,
-        content: content,
-        date: new Date().getTime(),
-      },
-    });
-    // const newTodo = {
-    //   id: idRef.current++,
-    //   isDone: false,
-    //   content: content,
-    //   date: new Date().getTime(),
-    // };
-    // setTodos([newTodo, ...todos]);
-  }, []);
+    const onCreate = useCallback((content) => {
+        dispatch({ type: 'CREATE', todo: { id: Date.now(), content, date: new Date().getTime(), isDone: false } })
+    }, [])
 
-  const onUpdate = useCallback(targetId => {
-    dispatch({
-      type: 'TODO_UPDATE',
-      targetId,
-    });
+    const onUpdate = useCallback((targetId) => {
+        dispatch({ type: 'UPDATE', id: targetId })
+    }, [])
 
-    // setTodos(
-    //   todos.map(todo => {
-    //     if (todo.id === targetId) {
-    //       return { ...todo, isDone: !todo.isDone };
-    //     }
-    //     return todo;
-    //   }),
-    // );
-  }, []);
+    const onDelete = useCallback((targetId) => {
+        dispatch({ type: 'DELETE', id: targetId })
+    }, [])
 
-  // const onDelete = targetId => {
-  //   dispatch({
-  //     type: 'TODO_DELETE',
-  //     targetId,
-  //   });
-  //   // setTodos(todos.filter(todo => todo.id !== targetId));
-  // };
+    const memoizeDispatch = useMemo(() => {
+        return { onCreate, onUpdate, onDelete }
+    }, [])
 
-  const onDelete = useCallback(targetId => {
-    dispatch({
-      type: 'TODO_DELETE',
-      targetId,
-    });
-    // setTodos(todos.filter(todo => todo.id !== targetId));
-  }, []);
-
-  const memoizedDispatch = useMemo(() => {
-    return { onInsert, onUpdate, onDelete };
-  }, []);
-
-  return (
-    <div className="App">
-      {/*<Exam />*/}
-      <Header />
-      <TodoStateContext value={todos}>
-        <TodoDispatchContext value={memoizedDispatch}>
-          <Editor />
-          <List />
-        </TodoDispatchContext>
-      </TodoStateContext>
-    </div>
-  );
+    return (
+        <div className={'App'}>
+            <Header />
+            <TodoStateContext.Provider value={todos}>
+                <TodoDispatchContext.Provider value={ memoizeDispatch }>
+                    <Editor/>
+                    <List/>
+                </TodoDispatchContext.Provider>
+            </TodoStateContext.Provider>
+        </div>
+    )
 }
 
-export default App;
+export default App

@@ -1,16 +1,16 @@
-import './Header.css';
-import { memo } from 'react';
+import React, {useState, useEffect, useMemo, useCallback, memo} from 'react';
 
-// eslint-disable-next-line react-refresh/only-export-components
+import './Header.css'
+
 const Header = () => {
-  return (
-    <div className="Header">
-      <h3>오늘은 📅</h3>
-      <h1>{new Date().toDateString()}</h1>
-    </div>
-  );
-};
+    return (
+        <>
+            <div className={'Header'}>
+                <h3>오늘은 📅</h3>
+                <h1>{new Date().toDateString()}</h1>
+            </div>
+        </>
+    );
+}
 
-const memoizedHeader = memo(Header);
-
-export default memoizedHeader;
+export default memo(Header);

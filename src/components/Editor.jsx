@@ -1,43 +1,36 @@
-import './Editor.css';
-import { useState, useRef, useContext } from 'react';
-import { TodoDispatchContext } from '../App.jsx';
+import React, {useState, useEffect, useMemo, useCallback, useRef, useContext} from 'react';
+import './Editor.css'
+import { TodoDispatchContext } from '../App';
 
 const Editor = () => {
-  const { onInsert } = useContext(TodoDispatchContext);
-  const [content, setContent] = useState('');
-  const contentRef = useRef();
+    const { onCreate } = useContext(TodoDispatchContext);
+    const [content, setContent] = useState('');
+    const inputRef = useRef(null);
 
-  const onChangeContent = e => {
-    setContent(e.target.value);
-  };
-
-  const onKeyEnter = e => {
-    if (e.key === 'Enter') {
-      addItem();
+    const onKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            onSubmit();
+        }
     }
-  };
+    const onSubmit = () => {
+        if (!content) {
+            inputRef.current.focus();
+            return;
+        }
 
-  const addItem = () => {
-    if (content.length <= 1) {
-      contentRef.current.focus();
-      return;
+        onCreate(content);
+        setContent('')
+        inputRef.current.focus();
     }
-    onInsert(content);
-    setContent('');
-  };
-
-  return (
-    <div className="Editor">
-      <input
-        ref={contentRef}
-        value={content}
-        onKeyDown={onKeyEnter}
-        onChange={onChangeContent}
-        placeholder="새로운 Todo.."
-      />
-      <button onClick={addItem}>추가</button>
-    </div>
-  );
-};
+    return (
+        <>
+            <div className={'Editor'}>
+                <input onKeyDown={onKeyDown} ref={inputRef} placeholder={'새로운 Todo..'} value={content}
+                       onChange={(e) => setContent(e.target.value)}/>
+                <button onClick={onSubmit}>추가</button>
+            </div>
+        </>
+    );
+}
 
 export default Editor;
